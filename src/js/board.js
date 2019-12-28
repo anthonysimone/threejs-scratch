@@ -87,7 +87,7 @@ function init() {
  * Create the camera
  */
 function createCamera() {
-  const fov = 70; // Field of view
+  const fov = 60; // Field of view
   const aspect = container.clientWidth / container.clientHeight;
   const near = 0.1; // the near clipping plane
   const far = 60; // the far clipping plane
@@ -347,7 +347,6 @@ function onMouseClick(event) {
     }
   }
 }
-
 
 // Set everything up
 init();
