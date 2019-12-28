@@ -1,0 +1,15 @@
+@import "variables.css";
+@import "font-face-rules.css";
+
+body {
+  font-family: var(--typography-font-family-primary);
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  width: 100vw;
+}
+
+#scene-container {
+  height: 100%;
+  width: 100%;
+}
