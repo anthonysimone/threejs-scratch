@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as TWEEN from 'es6-tween';
+import * as Hammer from 'hammerjs';
 import OrbitControls from 'orbit-controls-es6';
 import {
   MapControls
@@ -346,8 +347,16 @@ function onMouseClick(event) {
     }
   }
 }
-window.addEventListener('click', onMouseClick);
 
 
 // Set everything up
 init();
+
+// Add hammertime
+let hammerContainer = new Hammer.Manager(container);
+let Tap = new Hammer.Tap();
+hammerContainer.add(Tap);
+hammerContainer.on('tap', (e) => {
+  console.log('hiiieee', e);
+  onMouseClick(e.srcEvent);
+});

@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "es6-tween": "^5.5.10",
+    "hammerjs": "^2.0.8",
     "orbit-controls-es6": "2.0.0",
     "stats.js": "^0.17.0",
     "three": "^0.112.0",
