@@ -357,6 +357,5 @@ let hammerContainer = new Hammer.Manager(container);
 let Tap = new Hammer.Tap();
 hammerContainer.add(Tap);
 hammerContainer.on('tap', (e) => {
-  console.log('hiiieee', e);
   onMouseClick(e.srcEvent);
 });
