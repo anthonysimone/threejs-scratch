@@ -11,7 +11,8 @@ import {
   tweenActiveTileToggle
 } from './board/tweens';
 import {
-  toggleTileActiveState
+  toggleTileActiveState,
+  rotateTile
 } from './board/event-handlers';
 import {
   loadTileTextures
@@ -275,7 +276,6 @@ function createMeshes() {
   let count = tilesNumber * tilesNumber;
 
   // Create all instanced meshes
-  console.log('materials.tiles', materials.tiles);
   for (let i = 0; i < numberOfInstancedMeshes; i++) {
     let key = getInstancedMeshKeyByIndex(i);
     instancedMeshes[key] = {
@@ -429,10 +429,8 @@ function onMouseClick(event) {
   if (intersects.length && intersects[0].object.itemType === 'tile') {
     const name = intersects[0].object.name;
     const instanceId = intersects[0].instanceId;
-    console.log('tapTypeState', tapTypeState);
     if (event.shiftKey || tapTypeState === 'delete') {
       // shift key is pressed, "delete"
-      console.log('clicking with shift');
       instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix);
       matrix.multiplyMatrices(instanceMatrix, hideMatrix);
       instancedMeshes[name].mesh.setMatrixAt(instanceId, matrix);
@@ -447,6 +445,7 @@ function onMouseClick(event) {
 }
 
 const selectedTileLabel = document.getElementsByClassName('selected-tile-label')[0];
+const selectedTileActions = document.getElementsByClassName('selected-tile-actions')[0];
 
 function selectTile(name, instanceId) {
   // set selected tile
@@ -454,6 +453,7 @@ function selectTile(name, instanceId) {
 
   // set selectedTile name in dom
   selectedTileLabel.textContent = selectedTile;
+  selectedTileActions.classList.add('has-selection');
 
   // get position of selected tile and assign marker to that position
   instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix);
@@ -507,6 +507,14 @@ resetButton.addEventListener('click', e => {
   resetAllTiles();
 });
 
+const uiElements = document.getElementsByClassName('ui-elements')[0];
+uiElements.addEventListener('click', e => {
+  if (e.target.classList.contains('rotate-tile')) {
+    let selectedTileParts = selectedTile.split('-');
+    rotateTile(selectedTileParts[0], selectedTileParts[1], instancedMeshes[selectedTileParts[0]].mesh);
+  }
+});
+
 // Add event to update tapType state
 const tapTypeRadios = document.getElementsByClassName('tap-state')[0].getElementsByTagName('input');
 for (let i = 0; i < tapTypeRadios.length; i++) {
@@ -515,6 +523,8 @@ for (let i = 0; i < tapTypeRadios.length; i++) {
 
     if (e.target.value !== 'select') {
       selectedTile = null;
+      selectedTileLabel.textContent = '';
+      selectedTileActions.classList.remove('has-selection');
       selectionHighlighter.visible = false;
     }
   });
