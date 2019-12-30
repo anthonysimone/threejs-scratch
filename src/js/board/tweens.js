@@ -26,7 +26,7 @@ export function tweenActiveTileToggle(mesh, instanceId, isActive) {
   }
 
   let current = {
-    z: 0
+    y: 0
   };
 
   let originals = mesh.userData[instanceKey].elements,
@@ -41,15 +41,15 @@ export function tweenActiveTileToggle(mesh, instanceId, isActive) {
   // tween property
   let tweenTranslation = new TWEEN.Tween(current)
     .to({
-      z: value
+      y: value
     }, duration)
     .easing(easing)
     .on('update', ({
-      z
+      y
     }) => {
       // use the tweened value to set the matrix for our instance
       myInstanceMatrix.fromArray(mesh.userData[instanceKey].elements);
-      myTweenMatrix.makeTranslation(0, 0, current.z);
+      myTweenMatrix.makeTranslation(0, current.y, 0);
       myMatrix.multiplyMatrices(myInstanceMatrix, myTweenMatrix);
       mesh.setMatrixAt(instanceId, myMatrix);
       mesh.instanceMatrix.needsUpdate = true;

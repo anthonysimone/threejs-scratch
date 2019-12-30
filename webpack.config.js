@@ -88,7 +88,7 @@ const optimization = {
         test: /\.js$/,
         name: "commons",
         chunks: "all",
-        minChunks: 7,
+        minChunks: 10, // this needs to be updated when more paths are added
       },
       css: {
         test: /\.(css)$/,
@@ -191,10 +191,19 @@ module.exports = (env, argv) => {
       },
     }),
     new HtmlWebpackPlugin({
+      chunks: ["gridPage"],
+      filename: "grid.html",
+      hash: true,
+      template: path.join(__dirname, "src", "templates", "grid.html"),
+      templateParameters: {
+        PUBLIC_URL,
+      },
+    }),
+    new HtmlWebpackPlugin({
       chunks: ["boardPage"],
       filename: "board.html",
       hash: true,
-      template: path.join(__dirname, "src", "templates", "dice.html"),
+      template: path.join(__dirname, "src", "templates", "board.html"),
       templateParameters: {
         PUBLIC_URL,
       },
@@ -238,6 +247,7 @@ module.exports = (env, argv) => {
       trainPage: "./src/js/train.js",
       birdsPage: "./src/js/birds.js",
       dicePage: "./src/js/dice.js",
+      gridPage: "./src/js/grid.js",
       boardPage: "./src/js/board.js",
     },
     module: {

@@ -1,0 +1,33 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= APP_NAME %></title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Raleway" rel="stylesheet" />
+  <!-- bundle.css is injected here by html-webpack-plugin -->
+</head>
+
+<body>
+  <div id="scene-container"></div>
+  <div class="ui-elements">
+    <div class="control">
+      <label>Tap Behavior</label>
+      <div class="tap-state">
+        <label class="radio-label">Activate <input type="radio" value="activate" checked name="tapState"></label>
+        <label class="radio-label">Select <input type="radio" value="select" name="tapState"></label>
+        <label class="radio-label">Delete <input type="radio" value="delete" name="tapState"></label>
+      </div>
+    </div>
+    <div class="control">
+      <button class="reset-button">Reset tile position!</button>
+    </div>
+    <div class="control">
+      <span class="selected-tile-label"></span>
+    </div>
+  </div>
+  <!-- bundle.js is injected here by html-webpack-plugin -->
+</body>
+
+</html>
