@@ -100,6 +100,9 @@ function init() {
   createMeshes();
   createRenderer();
 
+  // Add the resize observer
+  myObserver.observe(container);
+
   renderer.setAnimationLoop((time) => {
     update(time);
     render();
@@ -411,6 +414,11 @@ function onWindowResize() {
 // Need to resize on both resize and orientation changes
 window.addEventListener('resize', onWindowResize);
 window.addEventListener('onorientationchange', onWindowResize);
+const myObserver = new ResizeObserver(entries => {
+  // iterate over the entries, do something.
+  console.log('resize observerrrrr!!!!!');
+  onWindowResize();
+});
 
 /**
  * mousemove helper
