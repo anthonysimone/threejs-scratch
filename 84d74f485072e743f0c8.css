@@ -1,0 +1,81 @@
+:root {
+  /* COLORS */
+  --colors-background-primary: #374047;
+  --colors-background-secondary: #5f6e78;
+  --colors-header: #5f6e78;
+
+  /* TYPOGRAPHY */
+  --typography-font-family-primary: "InknutAntiqua", sans-serif;
+  --typography-font-family-secondary: "Raleway";
+}
+
+/* Define font-face rules
+ * If you have multiple font formats, put most modern formats first.
+ * A single font-family can have multiple fonts (e.g. for bold, italic).
+ */
+
+@font-face {
+  font-family: InknutAntiqua;
+  font-style: normal;
+  font-weight: normal;
+  /* stylelint-disable-next-line declaration-colon-newline-after */
+  src: url(./fonts/InknutAntiqua-Regular.ttf)
+    format("truetype");
+}
+
+@font-face {
+  font-family: InknutAntiqua;
+  font-style: normal;
+  font-weight: bold;
+  /* stylelint-disable-next-line declaration-colon-newline-after */
+  src: url(./fonts/InknutAntiqua-ExtraBold.ttf)
+    format("truetype");
+}
+
+/* other cool fonts Syncopate, Quicksand, Aclonica */
+
+body {
+  font-family: var(--typography-font-family-primary);
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  width: 100vw;
+}
+
+#scene-container {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.ui-elements {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  width: 200px;
+  border: 2px solid #232323;
+  background: white;
+  padding: 5px;
+  font-size: 14px;
+  font-family: Helvetica, sans-serif;
+}
+
+.control:not(:first-child) {
+  margin-top: 10px;
+}
+
+.radio-label {
+  font-size: 12px;
+}
+
+.selected-tile-actions {
+  display: none;
+}
+
+.selected-tile-actions.has-selection {
+  display: block;
+}
+
+
+/*# sourceMappingURL=84d74f485072e743f0c8.css.map*/
