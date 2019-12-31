@@ -22,6 +22,7 @@
     "prebuild": "yarn lint",
     "predeploy": "yarn test && yarn build",
     "start": "webpack-dev-server --config webpack.config.js --mode development --open",
+    "start-exposed": "webpack-dev-server --config webpack.config.js --mode development --open --host 0.0.0.0",
     "static": "chromium-browser build/index.html",
     "stats": "webpack-bundle-analyzer build/stats.json --port 8888",
     "test": "yarn test:unit",

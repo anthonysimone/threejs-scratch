@@ -474,7 +474,7 @@ function selectTile(name, instanceId) {
 function onDocumentMouseMove(event) {
   event.preventDefault();
 
-  mouse.set((event.offsetY / window.innerWidth) * 2 - 1, -(event.offsetY / window.innerHeight) * 2 + 1);
+  mouse.set((event.offsetX / window.innerWidth) * 2 - 1, -(event.offsetY / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
 
   let intersects = raycaster.intersectObjects(objects, true);
