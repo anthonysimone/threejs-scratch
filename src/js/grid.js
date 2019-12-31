@@ -408,7 +408,9 @@ function onWindowResize() {
   renderer.setSize(container.clientWidth, container.clientHeight);
 }
 
+// Need to resize on both resize and orientation changes
 window.addEventListener('resize', onWindowResize);
+window.addEventListener('onorientationchange', onWindowResize);
 
 /**
  * mousemove helper
