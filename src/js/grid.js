@@ -416,11 +416,17 @@ window.addEventListener('resize', onWindowResize);
 function onMouseClick(event) {
   // calculate mouse position in normalized device coordinates
   // (-1 to +1) for both components
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  // mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  // mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  mouse.x = (event.clientX / container.offsetWidth) * 2 - 1;
+  mouse.y = -(event.clientY / container.offsetHeight) * 2 + 1;
+
+  console.log(`event.clientY: ${event.clientY}, container.offsetHeight: ${container.offsetHeight}`)
 
   console.log("click", mouse);
-  console.log("event", event)
+  console.log("event", event);
+  console.log("window and container", window, container);
 
 
   //   mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
