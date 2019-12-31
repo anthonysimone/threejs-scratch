@@ -12,6 +12,7 @@ body {
 #scene-container {
   height: 100%;
   width: 100%;
+  touch-action: none;
 }
 
 .ui-elements {

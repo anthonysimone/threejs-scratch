@@ -422,11 +422,11 @@ function onMouseClick(event) {
   mouse.x = (event.clientX / container.offsetWidth) * 2 - 1;
   mouse.y = -(event.clientY / container.offsetHeight) * 2 + 1;
 
-  // console.log(`event.clientY: ${event.clientY}, container.offsetHeight: ${container.offsetHeight}`)
+  console.log(`event.clientY: ${event.clientY}, container.offsetHeight: ${container.offsetHeight}`)
 
-  // console.log("click", mouse);
-  // console.log("event", event);
-  // console.log("window and container", window, container);
+  console.log("click", mouse);
+  console.log("event", event);
+  console.log("window and container", window, container);
 
 
   //   mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
