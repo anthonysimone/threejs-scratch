@@ -534,3 +534,31 @@ for (let i = 0; i < tapTypeRadios.length; i++) {
     }
   });
 }
+
+
+
+
+
+
+
+// Add fullscreen behavior
+const fullscreenButton = document.getElementsByClassName('go-fullscreen')[0];
+const body = document.body;
+fullscreenButton.addEventListener('click', e => {
+  goFullscreen(body);
+})
+
+function goFullscreen(elem) {
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.mozRequestFullScreen) {
+    /* Firefox */
+    elem.mozRequestFullScreen();
+  } else if (elem.webkitRequestFullscreen) {
+    /* Chrome, Safari and Opera */
+    contaeleminer.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) {
+    /* IE/Edge */
+    elem.msRequestFullscreen();
+  }
+}
