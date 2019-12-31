@@ -39,8 +39,45 @@ body {
   margin-top: 10px;
 }
 
-.radio-label {
+.tool-state {
+  display: flex;
+}
+
+.horizontal-radios .radio-label {
+  display: block;
+  position: relative;
   font-size: 12px;
+}
+
+.horizontal-radios .radio-label input {
+  position: absolute;
+  left: 5px;
+  bottom: 2px;
+  font-size: 0;
+  z-index: -1;
+}
+
+.horizontal-radios .radio-label span {
+  display: block;
+  background: #ffffff;
+  padding: 2px;
+  border: 1px solid purple;
+}
+
+.horizontal-radios .radio-label:not(:first-child) span {
+  border-left: none;
+}
+
+.horizontal-radios .radio-label input:checked+span {
+  background-color: #beb6ce;
+}
+
+.list-radios {
+  font-size: 12px;
+}
+
+.list-radios label {
+  display: block;
 }
 
 .selected-tile-actions {
@@ -48,5 +85,13 @@ body {
 }
 
 .selected-tile-actions.has-selection {
+  display: block;
+}
+
+.creation-tile-type {
+  display: none;
+}
+
+.creation-tile-type.enabled {
   display: block;
 }

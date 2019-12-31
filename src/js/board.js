@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as TWEEN from 'es6-tween';
 import * as Hammer from 'hammerjs';
+
 import OrbitControls from 'orbit-controls-es6';
 import {
   MapControls
@@ -10,8 +11,23 @@ import Stats from 'stats.js';
 import {
   tweenActiveTileToggle
 } from './board/tweens';
+import {
+  setMouse
+} from './board/helpers';
+import {
+  toggleTileActiveState,
+  rotateTile,
+  deleteTile,
+  addTile,
+} from './board/tileActions';
+import {
+  loadTileTextures
+} from './board/loadTextures';
 
 import '../css/index.css';
+import {
+  isIntersectionTypeAnnotation
+} from '@babel/types';
 
 const bwUvMap = require('../textures/uv_test_bw.png');
 const checkerMap = require('../textures/checkerboard.jpg');
@@ -23,7 +39,10 @@ let controls;
 let renderer;
 let scene;
 let mesh;
-let instancedMesh;
+let geometries;
+let materials;
+let selectionHighlighter;
+let boardGroup;
 const tilesNumber = 30;
 const checkerboardSize = tilesNumber % 4 === 0 ? tilesNumber : tilesNumber + 4 - (tilesNumber % 4);
 let instancedMeshes = {
@@ -42,6 +61,10 @@ let numberOfInstancedMeshes = Object.keys(instancedMeshes).length;
 let stats;
 let backgroundColor = new THREE.Color(0x8fbcd4);
 
+// rollover
+let rollOverGeo, rollOverMaterial, rollOverMesh;
+let objects = [];
+
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let transform = new THREE.Object3D();
@@ -49,8 +72,12 @@ let instanceMatrix = new THREE.Matrix4();
 let tweenMatrix = new THREE.Matrix4();
 let selectionMatrix = new THREE.Matrix4().makeTranslation(0, 0, 1);
 let unselectionMatrix = new THREE.Matrix4().makeTranslation(0, 0, -1);
+let rolloverOffsetVector = new THREE.Vector3(0.5, 0, 0.5);
+let initialTileOffsetVector = new THREE.Vector3(0.5, 0.126, 0.5);
 let matrix = new THREE.Matrix4();
 let selectedTile = null;
+let tapTypeState = 'activate';
+let creationTileType = 'first';
 
 function getInstancedMeshKeyByIndex(index) {
   return Object.keys(instancedMeshes)[index];
@@ -74,11 +101,17 @@ function init() {
   createCamera();
   createControls();
   createLights();
-  createMeshes();
+
+  createGrid();
+
+  materials = createMaterials();
+  geometries = createGeometries();
+
+  createMeshes(true);
   createRenderer();
 
-  renderer.setAnimationLoop(() => {
-    update();
+  renderer.setAnimationLoop((time) => {
+    update(time);
     render();
   });
 }
@@ -118,16 +151,51 @@ function createControls() {
 function createLights() {
   // Add ambient light
   const ambientLight = new THREE.HemisphereLight(
-    0xddeeff, // bright sky color
-    0x202020, // dim ground color
-    5 // intensity
+    0xffffff, // bright sky color
+    0x222222, // dim ground color
+    1 // intensity
   );
 
   // Add directional light, position, add to scene
-  const mainLight = new THREE.DirectionalLight(0xffffff, 5.0);
+  const mainLight = new THREE.DirectionalLight(0xffffff, 4.0);
   mainLight.position.set(10, 10, 10);
 
   scene.add(ambientLight, mainLight);
+  // scene.add(mainLight);
+}
+
+/**
+ * Create grid
+ */
+function createGrid() {
+  // Add grid group
+  const gridGroup = new THREE.Group();
+
+  // add roller helpers
+  rollOverGeo = new THREE.BoxBufferGeometry(1, 0.25, 1);
+  rollOverMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff0000,
+    opacity: 0.5,
+    transparent: true
+  });
+  rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
+  gridGroup.add(rollOverMesh);
+
+  // add grid
+  let gridHelper = new THREE.GridHelper(100, 100, 0x444444, 0x666666);
+  // gridHelper.colorGrid = 0x666666;
+  gridGroup.add(gridHelper);
+
+  let planeGeometry = new THREE.PlaneBufferGeometry(100, 100);
+  planeGeometry.rotateX(Math.PI * -0.5);
+  let plane = new THREE.Mesh(planeGeometry, new THREE.MeshBasicMaterial({
+    visible: false
+  }));
+  gridGroup.add(plane);
+
+  scene.add(gridGroup);
+
+  objects.push(plane);
 }
 
 /**
@@ -141,13 +209,15 @@ function createMaterials() {
   });
   tile.color.convertSRGBToLinear();
 
-  const tiles = [];
-  for (let i = 0; i < numberOfInstancedMeshes; i++) {
+  // Load tile textures and fillers
+  const tiles = loadTileTextures();
+
+  for (let i = 0; i < numberOfInstancedMeshes - 5; i++) {
     let tileColor = new THREE.MeshStandardMaterial({
-      color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+      color: Math.random() * 0xffffff,
       flatShading: true
     });
-    tiles.push();
+    tiles.push(tileColor);
   }
 
   // checker material
@@ -165,6 +235,8 @@ function createMaterials() {
     side: THREE.DoubleSide
   });
 
+
+
   return {
     tile,
     tiles,
@@ -176,43 +248,41 @@ function createMaterials() {
  * Create geometries
  */
 function createGeometries() {
-  const tile = new THREE.BoxBufferGeometry(1, 1, 0.25);
-  const tiles = [];
+  const tile = new THREE.BoxBufferGeometry(1, 0.25, 1);
   const flatTile = new THREE.PlaneBufferGeometry(1, 1);
   const board = new THREE.PlaneBufferGeometry(checkerboardSize, checkerboardSize);
+  const cone = new THREE.ConeBufferGeometry(0.3, 1, 8);
 
+  const tiles = [];
   for (let i = 0; i < numberOfInstancedMeshes; i++) {
-    tiles.push(new THREE.BoxBufferGeometry(1, 1, 0.25));
+    tiles.push(new THREE.BoxBufferGeometry(1, 0.25, 1));
   }
 
   return {
     tile,
     tiles,
     flatTile,
-    board
+    board,
+    cone
   };
 }
 
 /**
  * Create cube mesh
  */
-function createMeshes() {
+function createMeshes(withTiles) {
   // create the train group that will hold all train pieces
-  const board = new THREE.Group();
-  board.rotation.x = Math.PI * -0.5;
+  boardGroup = new THREE.Group();
 
-  scene.add(board);
-
-  const materials = createMaterials();
-  const geometries = createGeometries();
+  scene.add(boardGroup);
 
   // Add checkerboard
   const checkerboard = new THREE.Mesh(geometries.board, materials.board);
-  board.add(checkerboard);
+  checkerboard.rotation.x = Math.PI * -0.5;
+  boardGroup.add(checkerboard);
 
   /** Create Tiles Instanced - Start */
   let count = tilesNumber * tilesNumber;
-  instancedMesh = new THREE.InstancedMesh(geometries.tile, materials.tiles[0], count);
 
   // Create all instanced meshes
   for (let i = 0; i < numberOfInstancedMeshes; i++) {
@@ -227,35 +297,41 @@ function createMeshes() {
     instancedMeshes[key].mesh.itemType = 'tile';
   }
 
-  // Populate all the instance meshes randomly
-  let offset = (tilesNumber - 1) / 2;
-  let instancedKeys = Object.keys(instancedMeshes);
+  if (withTiles) {
+    // Populate all the instance meshes randomly
+    let offset = (tilesNumber - 1) / 2;
+    let instancedKeys = Object.keys(instancedMeshes);
 
-  for (let x = 0; x < tilesNumber; x++) {
-    for (let y = 0; y < tilesNumber; y++) {
-      // set transform based on position
-      transform.position.set(offset - x, offset - y, 0.126);
-      transform.updateMatrix();
+    for (let x = 0; x < tilesNumber; x++) {
+      for (let z = 0; z < tilesNumber; z++) {
+        // set transform based on position
+        transform.position.set(offset - x, 0.126, offset - z);
+        transform.updateMatrix();
 
-      // Choose the instanced mesh to add to
-      let inst = Math.floor(Math.random() * numberOfInstancedMeshes);
-      let key = instancedKeys[inst];
-      let i = instancedMeshes[key].count;
+        // Choose the instanced mesh to add to
+        let inst = Math.floor(Math.random() * numberOfInstancedMeshes);
+        let key = instancedKeys[inst];
 
-      // Set this index's position
-      instancedMeshes[key].mesh.setMatrixAt(i, transform.matrix);
-
-      // Increment our counter and the instanced mesh counter
-      instancedMeshes[key].mesh.count++;
-      instancedMeshes[key].count++;
+        // add the tile
+        addTile(transform, instancedMeshes[key]);
+      }
     }
   }
 
   // Add all instancedMeshes to the scene
   for (let i = 0; i < numberOfInstancedMeshes; i++) {
     let key = getInstancedMeshKeyByIndex(i);
-    board.add(instancedMeshes[key].mesh);
+    boardGroup.add(instancedMeshes[key].mesh);
   }
+
+  // Create and add the selection mesh
+  selectionHighlighter = new THREE.Mesh(geometries.cone, materials.tile);
+
+  selectionHighlighter.position.set(0, 0.85, 0);
+  selectionHighlighter.rotation.set(Math.PI, 0, 0);
+  selectionHighlighter.visible = false;
+
+  boardGroup.add(selectionHighlighter);
 }
 
 /**
@@ -281,8 +357,14 @@ function createRenderer() {
 /**
  * Perform app updates, this will be called once per frame
  */
-function update() {
+function update(time) {
   TWEEN.update();
+
+  if (selectionHighlighter.visible) {
+    selectionHighlighter.rotateY(0.02);
+
+    selectionHighlighter.position.y = 0.85 + Math.sin(time / 200) * 0.1;
+  }
 }
 
 /**
@@ -295,11 +377,27 @@ function render() {
 }
 
 /**
+ * Reset all tiles
+ */
+export function resetAllTiles() {
+  let instancedMeshNamnes = Object.keys(instancedMeshes);
+  instancedMeshNamnes.forEach(name => {
+    let instanceKeys = Object.keys(instancedMeshes[name].mesh.userData);
+    instanceKeys.forEach(instanceId => {
+      if (instancedMeshes[name].mesh.userData[instanceId].isActive) {
+        tweenActiveTileToggle(instancedMeshes[name].mesh, instanceId, false);
+      }
+    })
+  });
+}
+
+/**
  * resize canvas helper
  */
 function onWindowResize() {
   // set aspect ratio to match the new browser window aspect ratio
   camera.aspect = container.clientWidth / container.clientHeight;
+  console.log('container.client width height', container.clientWidth, container.clientHeight);
 
   // update the camera's frustum
   camera.updateProjectionMatrix();
@@ -308,7 +406,9 @@ function onWindowResize() {
   renderer.setSize(container.clientWidth, container.clientHeight);
 }
 
+// Need to resize on both resize and orientation changes
 window.addEventListener('resize', onWindowResize);
+window.addEventListener('onorientationchange', onWindowResize);
 
 /**
  * mousemove helper
@@ -316,36 +416,100 @@ window.addEventListener('resize', onWindowResize);
 function onMouseClick(event) {
   // calculate mouse position in normalized device coordinates
   // (-1 to +1) for both components
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  setMouse(mouse, event, container);
 
   // update the picking ray with the camera and mouse position
   raycaster.setFromCamera(mouse, camera);
 
   // calculate objects intersecting the picking ray
-  let intersects = raycaster.intersectObjects(scene.children, true);
+  let intersects = raycaster.intersectObjects(boardGroup.children, true);
+  const hasHitTile = intersects.length && intersects[0].object.itemType === 'tile';
 
   // Flag all intersections
-  if (intersects.length && intersects[0].object.itemType === 'tile') {
-    let name = intersects[0].object.name;
-    let instanceId = intersects[0].instanceId;
-    let instanceKey = instanceId.toString();
-    selectedTile = `${name}-${instanceId}`;
-
-    // instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix);
-    // matrix.multiplyMatrices(instanceMatrix, selectionMatrix);
-    // instancedMeshes[name].mesh.setMatrixAt(instanceId, matrix);
-    // instancedMeshes[name].mesh.instanceMatrix.needsUpdate = true;
-    let instanceUserData = instancedMeshes[name].mesh.userData[instanceKey];
-    if (instanceUserData && instanceUserData.isAnimating) {
-      return;
-    }
-    if (!instanceUserData || (instanceUserData && !instanceUserData.isActive)) {
-      tweenActiveTileToggle(instancedMeshes[name].mesh, instanceId, true);
-    } else {
-      tweenActiveTileToggle(instancedMeshes[name].mesh, instanceId, false);
+  if (hasHitTile) {
+    const name = intersects[0].object.name;
+    const instanceId = intersects[0].instanceId;
+    if (event.shiftKey || tapTypeState === 'delete') {
+      // shift key is pressed, "delete"
+      deleteTile(name, instanceId, instancedMeshes[name].mesh);
+    } else if (tapTypeState === 'select') {
+      selectTile(name, instanceId);
+    } else if (tapTypeState === 'activate') {
+      // no shift key, activate
+      toggleTileActiveState(name, instanceId, instancedMeshes[name].mesh);
     }
   }
+
+  // "unoccupied" board spaces intersections
+  if (tapTypeState === 'create' && creationTileType !== null && !hasHitTile) {
+    raycaster.setFromCamera(mouse, camera);
+
+    let objectsIntersects = raycaster.intersectObjects(objects, true);
+    console.log('objectsIntersects', objectsIntersects);
+
+    if (objectsIntersects.length > 0) {
+      let intersect = objectsIntersects[0];
+
+      intersect.point.floor();
+      intersect.point.y = 0;
+      intersect.point.add(initialTileOffsetVector);
+      transform.position.copy(intersect.point);
+      transform.updateMatrix();
+
+      addTileByType(creationTileType, transform);
+    }
+  }
+}
+
+const selectedTileLabel = document.getElementsByClassName('selected-tile-label')[0];
+const selectedTileActions = document.getElementsByClassName('selected-tile-actions')[0];
+
+function selectTile(name, instanceId) {
+  // set selected tile
+  selectedTile = `${name}-${instanceId}`;
+
+  // set selectedTile name in dom
+  selectedTileLabel.textContent = selectedTile;
+  selectedTileActions.classList.add('has-selection');
+
+  // get position of selected tile and assign marker to that position
+  instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix);
+  let vec = new THREE.Vector3();
+  vec.setFromMatrixPosition(instanceMatrix);
+  const currentY = selectionHighlighter.position.y;
+  selectionHighlighter.position.set(vec.x, currentY, vec.z);
+  selectionHighlighter.visible = true;
+}
+
+function addTileByType(type, position) {
+  if (instancedMeshes.hasOwnProperty(type)) {
+    addTile(position, instancedMeshes[type]);
+  } else {
+    console.error(`Invalid tile type: '${type}'`);
+  }
+}
+
+/**
+ * onMouseMove
+ */
+function onDocumentMouseMove(event) {
+  event.preventDefault();
+
+  setMouse(mouse, event, container);
+  raycaster.setFromCamera(mouse, camera);
+
+  let intersects = raycaster.intersectObjects(objects, true);
+
+  if (intersects.length > 0) {
+    var intersect = intersects[0];
+
+    rollOverMesh.position.copy(intersect.point);
+    rollOverMesh.position.floor();
+    rollOverMesh.position.y = 0;
+    rollOverMesh.position.add(rolloverOffsetVector);
+  }
+
+  // render();
 }
 
 // Set everything up
@@ -358,3 +522,77 @@ hammerContainer.add(Tap);
 hammerContainer.on('tap', (e) => {
   onMouseClick(e.srcEvent);
 });
+document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+// Reset button event
+const resetButton = document.getElementsByClassName('reset-button')[0];
+resetButton.addEventListener('click', e => {
+  resetAllTiles();
+});
+
+const uiElements = document.getElementsByClassName('ui-elements')[0];
+uiElements.addEventListener('click', e => {
+  if (e.target.classList.contains('rotate-tile')) {
+    let selectedTileParts = selectedTile.split('-');
+    rotateTile(selectedTileParts[0], selectedTileParts[1], instancedMeshes[selectedTileParts[0]].mesh);
+  }
+});
+
+
+// Add event to update tile selection state
+const creationTypeControl = document.getElementsByClassName('creation-tile-type')[0];
+const creationTypeRadios = creationTypeControl.getElementsByTagName('input');
+for (let i = 0; i < creationTypeRadios.length; i++) {
+  creationTypeRadios[i].addEventListener('change', e => {
+    creationTileType = e.target.value;
+  });
+}
+
+// Add event to update tapType state
+const tapTypeRadios = document.getElementsByClassName('tool-state')[0].getElementsByTagName('input');
+for (let i = 0; i < tapTypeRadios.length; i++) {
+  tapTypeRadios[i].addEventListener('change', e => {
+    tapTypeState = e.target.value;
+
+    if (e.target.value !== 'select') {
+      selectedTile = null;
+      selectedTileLabel.textContent = '';
+      selectedTileActions.classList.remove('has-selection');
+      selectionHighlighter.visible = false;
+    }
+
+    if (e.target.value === 'create') {
+      creationTypeControl.classList.add('enabled');
+    } else {
+      creationTypeControl.classList.remove('enabled');
+    }
+  });
+}
+
+
+
+
+
+
+
+// Add fullscreen behavior
+const fullscreenButton = document.getElementsByClassName('go-fullscreen')[0];
+const body = document.body;
+fullscreenButton.addEventListener('click', e => {
+  goFullscreen(body);
+})
+
+function goFullscreen(elem) {
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.mozRequestFullScreen) {
+    /* Firefox */
+    elem.mozRequestFullScreen();
+  } else if (elem.webkitRequestFullscreen) {
+    /* Chrome, Safari and Opera */
+    contaeleminer.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) {
+    /* IE/Edge */
+    elem.msRequestFullscreen();
+  }
+}

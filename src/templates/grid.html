@@ -13,11 +13,49 @@
   <div id="scene-container"></div>
   <div class="ui-elements">
     <div class="control">
-      <label>Tap Behavior</label>
-      <div class="tap-state">
-        <label class="radio-label">Activate <input type="radio" value="activate" checked name="tapState"></label>
-        <label class="radio-label">Select <input type="radio" value="select" name="tapState"></label>
-        <label class="radio-label">Delete <input type="radio" value="delete" name="tapState"></label>
+      <label>Tool</label>
+      <div class="tool-state horizontal-radios">
+        <label class="radio-label">
+          <input type="radio" value="activate" checked name="tapState">
+          <span>Activate</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="create" name="tapState">
+          <span>Create</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="select" name="tapState">
+          <span>Select</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="delete" name="tapState">
+          <span>Delete</span>
+        </label>
+      </div>
+    </div>
+    <div class="control">
+      <label>Creation Tile Type</label>
+      <div class="creation-tile-type list-radios">
+        <label class="radio-label">
+          <input type="radio" value="first" checked name="creationTileType">
+          <span>Floor</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="second" name="creationTileType">
+          <span>Wall</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="third" name="creationTileType">
+          <span>Door</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="fourth" name="creationTileType">
+          <span>Water</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="fifth" name="creationTileType">
+          <span>Pit</span>
+        </label>
       </div>
     </div>
     <div class="control">

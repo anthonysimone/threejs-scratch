@@ -6,6 +6,7 @@ import {
 
 let instanceMatrix = new THREE.Matrix4();
 let rotationMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2);
+let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
 let matrix = new THREE.Matrix4();
 
 /**
@@ -33,6 +34,32 @@ export function rotateTile(name, instanceId, mesh) {
   matrix.multiplyMatrices(instanceMatrix, rotationMatrix);
   mesh.setMatrixAt(instanceId, matrix);
   mesh.instanceMatrix.needsUpdate = true;
+}
+
+/**
+ * Delete tile
+ */
+export function deleteTile(name, instanceId, mesh) {
+  mesh.getMatrixAt(instanceId, instanceMatrix);
+  matrix.multiplyMatrices(instanceMatrix, hideMatrix);
+  mesh.setMatrixAt(instanceId, matrix);
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+/**
+ * Add tile
+ */
+export function addTile(position, instancedMesh) {
+  // Set this index's position
+  console.log('adding to this instance', instancedMesh);
+  instancedMesh.mesh.setMatrixAt(instancedMesh.count, position.matrix);
+  instancedMesh.mesh.instanceMatrix.needsUpdate = true;
+
+  // Increment our counter and the instanced mesh counter
+  instancedMesh.mesh.count++;
+  instancedMesh.count++;
+  console.log('after', instancedMesh);
+
 }
 
 // /**

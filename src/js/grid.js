@@ -12,14 +12,22 @@ import {
   tweenActiveTileToggle
 } from './board/tweens';
 import {
+  setMouse
+} from './board/helpers';
+import {
   toggleTileActiveState,
-  rotateTile
-} from './board/event-handlers';
+  rotateTile,
+  deleteTile,
+  addTile,
+} from './board/tileActions';
 import {
   loadTileTextures
 } from './board/loadTextures';
 
 import '../css/index.css';
+import {
+  isIntersectionTypeAnnotation
+} from '@babel/types';
 
 const bwUvMap = require('../textures/uv_test_bw.png');
 const checkerMap = require('../textures/checkerboard.jpg');
@@ -62,13 +70,14 @@ let mouse = new THREE.Vector2();
 let transform = new THREE.Object3D();
 let instanceMatrix = new THREE.Matrix4();
 let tweenMatrix = new THREE.Matrix4();
-let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
 let selectionMatrix = new THREE.Matrix4().makeTranslation(0, 0, 1);
 let unselectionMatrix = new THREE.Matrix4().makeTranslation(0, 0, -1);
-let rolloverOffsetVector = new THREE.Vector3(0.5, 0.5, 0.5);
+let rolloverOffsetVector = new THREE.Vector3(0.5, 0, 0.5);
+let initialTileOffsetVector = new THREE.Vector3(0.5, 0.126, 0.5);
 let matrix = new THREE.Matrix4();
 let selectedTile = null;
 let tapTypeState = 'activate';
+let creationTileType = 'first';
 
 function getInstancedMeshKeyByIndex(index) {
   return Object.keys(instancedMeshes)[index];
@@ -98,7 +107,7 @@ function init() {
   materials = createMaterials();
   geometries = createGeometries();
 
-  createMeshes();
+  createMeshes(false);
   createRenderer();
 
   renderer.setAnimationLoop((time) => {
@@ -163,14 +172,13 @@ function createGrid() {
   const gridGroup = new THREE.Group();
 
   // add roller helpers
-  rollOverGeo = new THREE.BoxBufferGeometry(1, 1, 0.25);
+  rollOverGeo = new THREE.BoxBufferGeometry(1, 0.25, 1);
   rollOverMaterial = new THREE.MeshBasicMaterial({
     color: 0xff0000,
     opacity: 0.5,
     transparent: true
   });
   rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
-  // rollOverMesh.rotation.x = Math.PI * -0.5;
   gridGroup.add(rollOverMesh);
 
   // add grid
@@ -262,7 +270,7 @@ function createGeometries() {
 /**
  * Create cube mesh
  */
-function createMeshes() {
+function createMeshes(withTiles) {
   // create the train group that will hold all train pieces
   boardGroup = new THREE.Group();
 
@@ -289,27 +297,24 @@ function createMeshes() {
     instancedMeshes[key].mesh.itemType = 'tile';
   }
 
-  // Populate all the instance meshes randomly
-  let offset = (tilesNumber - 1) / 2;
-  let instancedKeys = Object.keys(instancedMeshes);
+  if (withTiles) {
+    // Populate all the instance meshes randomly
+    let offset = (tilesNumber - 1) / 2;
+    let instancedKeys = Object.keys(instancedMeshes);
 
-  for (let x = 0; x < tilesNumber; x++) {
-    for (let z = 0; z < tilesNumber; z++) {
-      // set transform based on position
-      transform.position.set(offset - x, 0.126, offset - z);
-      transform.updateMatrix();
+    for (let x = 0; x < tilesNumber; x++) {
+      for (let z = 0; z < tilesNumber; z++) {
+        // set transform based on position
+        transform.position.set(offset - x, 0.126, offset - z);
+        transform.updateMatrix();
 
-      // Choose the instanced mesh to add to
-      let inst = Math.floor(Math.random() * numberOfInstancedMeshes);
-      let key = instancedKeys[inst];
-      let i = instancedMeshes[key].count;
+        // Choose the instanced mesh to add to
+        let inst = Math.floor(Math.random() * numberOfInstancedMeshes);
+        let key = instancedKeys[inst];
 
-      // Set this index's position
-      instancedMeshes[key].mesh.setMatrixAt(i, transform.matrix);
-
-      // Increment our counter and the instanced mesh counter
-      instancedMeshes[key].mesh.count++;
-      instancedMeshes[key].count++;
+        // add the tile
+        addTile(transform, instancedMeshes[key]);
+      }
     }
   }
 
@@ -320,16 +325,7 @@ function createMeshes() {
   }
 
   // Create and add the selection mesh
-  // const pointersCount = 2;
-  // let selectionHighlighter = new THREE.InstancedMesh(geometries.cone, materials.tile, pointersCount);
   selectionHighlighter = new THREE.Mesh(geometries.cone, materials.tile);
-
-  // for (let i = 0; i < pointersCount; i++) {
-  //   transform.position.set(0, -2, 0);
-  //   transform.rotation.set(Math.PI * 0.7, 2 * Math.PI * (i / pointersCount), 0);
-  //   transform.updateMatrix();
-  //   selectionHighlighter.setMatrixAt(i, transform.matrix);
-  // }
 
   selectionHighlighter.position.set(0, 0.85, 0);
   selectionHighlighter.rotation.set(Math.PI, 0, 0);
@@ -420,30 +416,47 @@ window.addEventListener('onorientationchange', onWindowResize);
 function onMouseClick(event) {
   // calculate mouse position in normalized device coordinates
   // (-1 to +1) for both components
-  mouse.x = (event.offsetX / container.clientWidth) * 2 - 1;
-  mouse.y = -(event.offsetY / container.clientHeight) * 2 + 1;
+  setMouse(mouse, event, container);
 
   // update the picking ray with the camera and mouse position
   raycaster.setFromCamera(mouse, camera);
 
   // calculate objects intersecting the picking ray
   let intersects = raycaster.intersectObjects(boardGroup.children, true);
+  const hasHitTile = intersects.length && intersects[0].object.itemType === 'tile';
 
   // Flag all intersections
-  if (intersects.length && intersects[0].object.itemType === 'tile') {
+  if (hasHitTile) {
     const name = intersects[0].object.name;
     const instanceId = intersects[0].instanceId;
     if (event.shiftKey || tapTypeState === 'delete') {
       // shift key is pressed, "delete"
-      instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix);
-      matrix.multiplyMatrices(instanceMatrix, hideMatrix);
-      instancedMeshes[name].mesh.setMatrixAt(instanceId, matrix);
-      instancedMeshes[name].mesh.instanceMatrix.needsUpdate = true;
+      deleteTile(name, instanceId, instancedMeshes[name].mesh);
     } else if (tapTypeState === 'select') {
       selectTile(name, instanceId);
     } else if (tapTypeState === 'activate') {
       // no shift key, activate
       toggleTileActiveState(name, instanceId, instancedMeshes[name].mesh);
+    }
+  }
+
+  // "unoccupied" board spaces intersections
+  if (tapTypeState === 'create' && creationTileType !== null && !hasHitTile) {
+    raycaster.setFromCamera(mouse, camera);
+
+    let objectsIntersects = raycaster.intersectObjects(objects, true);
+    console.log('objectsIntersects', objectsIntersects);
+
+    if (objectsIntersects.length > 0) {
+      let intersect = objectsIntersects[0];
+
+      intersect.point.floor();
+      intersect.point.y = 0;
+      intersect.point.add(initialTileOffsetVector);
+      transform.position.copy(intersect.point);
+      transform.updateMatrix();
+
+      addTileByType(creationTileType, transform);
     }
   }
 }
@@ -468,13 +481,21 @@ function selectTile(name, instanceId) {
   selectionHighlighter.visible = true;
 }
 
+function addTileByType(type, position) {
+  if (instancedMeshes.hasOwnProperty(type)) {
+    addTile(position, instancedMeshes[type]);
+  } else {
+    console.error(`Invalid tile type: '${type}'`);
+  }
+}
+
 /**
  * onMouseMove
  */
 function onDocumentMouseMove(event) {
   event.preventDefault();
 
-  mouse.set((event.offsetX / window.innerWidth) * 2 - 1, -(event.offsetY / window.innerHeight) * 2 + 1);
+  setMouse(mouse, event, container);
   raycaster.setFromCamera(mouse, camera);
 
   let intersects = raycaster.intersectObjects(objects, true);
@@ -486,8 +507,6 @@ function onDocumentMouseMove(event) {
     rollOverMesh.position.floor();
     rollOverMesh.position.y = 0;
     rollOverMesh.position.add(rolloverOffsetVector);
-    // rollOverMesh.position.y = 0.125;
-    // rollOverMesh.position.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
   }
 
   // render();
@@ -519,8 +538,18 @@ uiElements.addEventListener('click', e => {
   }
 });
 
+
+// Add event to update tile selection state
+const creationTypeControl = document.getElementsByClassName('creation-tile-type')[0];
+const creationTypeRadios = creationTypeControl.getElementsByTagName('input');
+for (let i = 0; i < creationTypeRadios.length; i++) {
+  creationTypeRadios[i].addEventListener('change', e => {
+    creationTileType = e.target.value;
+  });
+}
+
 // Add event to update tapType state
-const tapTypeRadios = document.getElementsByClassName('tap-state')[0].getElementsByTagName('input');
+const tapTypeRadios = document.getElementsByClassName('tool-state')[0].getElementsByTagName('input');
 for (let i = 0; i < tapTypeRadios.length; i++) {
   tapTypeRadios[i].addEventListener('change', e => {
     tapTypeState = e.target.value;
@@ -530,6 +559,12 @@ for (let i = 0; i < tapTypeRadios.length; i++) {
       selectedTileLabel.textContent = '';
       selectedTileActions.classList.remove('has-selection');
       selectionHighlighter.visible = false;
+    }
+
+    if (e.target.value === 'create') {
+      creationTypeControl.classList.add('enabled');
+    } else {
+      creationTypeControl.classList.remove('enabled');
     }
   });
 }
