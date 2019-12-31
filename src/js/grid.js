@@ -420,6 +420,7 @@ function onMouseClick(event) {
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
   console.log("click", mouse);
+  console.log("event", event)
 
 
   //   mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
