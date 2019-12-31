@@ -7,7 +7,6 @@ import {
   MapControls
 } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'stats.js';
-import ResizeObserver from 'resize-observer-polyfill';
 
 import {
   tweenActiveTileToggle
@@ -101,9 +100,6 @@ function init() {
 
   createMeshes();
   createRenderer();
-
-  // Add the resize observer
-  resizeObserverPony.observe(container);
 
   renderer.setAnimationLoop((time) => {
     update(time);
@@ -418,49 +414,20 @@ function onWindowResize() {
 window.addEventListener('resize', onWindowResize);
 window.addEventListener('onorientationchange', onWindowResize);
 
-const resizeObserverPony = new ResizeObserver((entries, observer) => {
-  for (const entry of entries) {
-    const {
-      left,
-      top,
-      width,
-      height
-    } = entry.contentRect;
-
-    console.log('resize pony!!');
-    onWindowResize();
-    console.log('Element:', entry.target);
-    console.log(`Element's size: ${ width }px x ${ height }px`);
-    console.log(`Element's paddings: ${ top }px ; ${ left }px`);
-  }
-});
-
 /**
  * mousemove helper
  */
 function onMouseClick(event) {
   // calculate mouse position in normalized device coordinates
   // (-1 to +1) for both components
-  // mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  // mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-  mouse.x = (event.clientX / container.offsetWidth) * 2 - 1;
-  mouse.y = -(event.clientY / container.offsetHeight) * 2 + 1;
-
-  console.log('in mouse client, offsetHeight, offsetWidth', container.offsetHeight, container.offsetWidth);
-  // console.log(`event.clientY: ${event.clientY}, container.offsetHeight: ${container.offsetHeight}`)
-
-
-  //   mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
-
-  // mouse.y = -(event.targetTouches[0].pageY / window.innerHeight) * 2 + 1;
+  mouse.x = (event.offsetX / container.clientWidth) * 2 - 1;
+  mouse.y = -(event.offsetY / container.clientHeight) * 2 + 1;
 
   // update the picking ray with the camera and mouse position
   raycaster.setFromCamera(mouse, camera);
 
   // calculate objects intersecting the picking ray
   let intersects = raycaster.intersectObjects(boardGroup.children, true);
-  console.log(intersects);
 
   // Flag all intersections
   if (intersects.length && intersects[0].object.itemType === 'tile') {
@@ -507,7 +474,7 @@ function selectTile(name, instanceId) {
 function onDocumentMouseMove(event) {
   event.preventDefault();
 
-  mouse.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1);
+  mouse.set((event.offsetY / window.innerWidth) * 2 - 1, -(event.offsetY / window.innerHeight) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
 
   let intersects = raycaster.intersectObjects(objects, true);
