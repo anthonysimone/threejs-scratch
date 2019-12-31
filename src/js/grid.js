@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import * as TWEEN from 'es6-tween';
 import * as Hammer from 'hammerjs';
+
 import OrbitControls from 'orbit-controls-es6';
 import {
   MapControls
 } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'stats.js';
+import ResizeObserver from 'resize-observer-polyfill';
 
 import {
   tweenActiveTileToggle
@@ -101,7 +103,7 @@ function init() {
   createRenderer();
 
   // Add the resize observer
-  myObserver.observe(container);
+  resizeObserverPony.observe(container);
 
   renderer.setAnimationLoop((time) => {
     update(time);
@@ -403,6 +405,7 @@ export function resetAllTiles() {
 function onWindowResize() {
   // set aspect ratio to match the new browser window aspect ratio
   camera.aspect = container.clientWidth / container.clientHeight;
+  console.log('container.client width height', container.clientWidth, container.clientHeight);
 
   // update the camera's frustum
   camera.updateProjectionMatrix();
@@ -414,10 +417,22 @@ function onWindowResize() {
 // Need to resize on both resize and orientation changes
 window.addEventListener('resize', onWindowResize);
 window.addEventListener('onorientationchange', onWindowResize);
-const myObserver = new ResizeObserver(entries => {
-  // iterate over the entries, do something.
-  console.log('resize observerrrrr!!!!!');
-  onWindowResize();
+
+const resizeObserverPony = new ResizeObserver((entries, observer) => {
+  for (const entry of entries) {
+    const {
+      left,
+      top,
+      width,
+      height
+    } = entry.contentRect;
+
+    console.log('resize pony!!');
+    onWindowResize();
+    console.log('Element:', entry.target);
+    console.log(`Element's size: ${ width }px x ${ height }px`);
+    console.log(`Element's paddings: ${ top }px ; ${ left }px`);
+  }
 });
 
 /**
@@ -432,11 +447,8 @@ function onMouseClick(event) {
   mouse.x = (event.clientX / container.offsetWidth) * 2 - 1;
   mouse.y = -(event.clientY / container.offsetHeight) * 2 + 1;
 
-  console.log(`event.clientY: ${event.clientY}, container.offsetHeight: ${container.offsetHeight}`)
-
-  console.log("click", mouse);
-  console.log("event", event);
-  console.log("window and container", window, container);
+  console.log('in mouse client, offsetHeight, offsetWidth', container.offsetHeight, container.offsetWidth);
+  // console.log(`event.clientY: ${event.clientY}, container.offsetHeight: ${container.offsetHeight}`)
 
 
   //   mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
