@@ -545,7 +545,7 @@ for (let i = 0; i < tapTypeRadios.length; i++) {
 const fullscreenButton = document.getElementsByClassName('go-fullscreen')[0];
 const body = document.body;
 fullscreenButton.addEventListener('click', e => {
-  goFullscreen(body);
+  goFullscreen(container);
 })
 
 function goFullscreen(elem) {
