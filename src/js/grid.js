@@ -419,6 +419,8 @@ function onMouseClick(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
+  console.log("click", mouse);
+
 
   //   mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
 
@@ -429,6 +431,7 @@ function onMouseClick(event) {
 
   // calculate objects intersecting the picking ray
   let intersects = raycaster.intersectObjects(boardGroup.children, true);
+  console.log(intersects);
 
   // Flag all intersections
   if (intersects.length && intersects[0].object.itemType === 'tile') {
