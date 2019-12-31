@@ -1,9 +1,14 @@
 @import "variables.css";
 @import "font-face-rules.css";
 
+html {
+  height: 100%;
+}
+
 body {
   font-family: var(--typography-font-family-primary);
-  height: 100vh;
+  height: 100%;
+  /* height: 100vh; */
   margin: 0;
   overflow: hidden;
   width: 100vw;
