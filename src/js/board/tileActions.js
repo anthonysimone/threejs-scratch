@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 
 import {
+  deconstructTileStringId
+} from './helpers';
+
+import {
   tweenActiveTileToggle
 } from './tweens';
 
@@ -8,6 +12,7 @@ let instanceMatrix = new THREE.Matrix4();
 let rotationMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2);
 let hideMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
 let matrix = new THREE.Matrix4();
+let vec = new THREE.Vector3();
 
 /**
  * Toggle the tile active state
@@ -60,6 +65,27 @@ export function addTile(position, instancedMesh) {
   instancedMesh.count++;
   console.log('after', instancedMesh);
 
+}
+
+/**
+ * Get position from name and instanceId
+ */
+export function getTilePosition(name, instanceId, instancedMeshes) {
+  instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix);
+  vec.setFromMatrixPosition(instanceMatrix);
+  return vec;
+}
+
+export function getSelectedTilePosition(selectedTile, instancedMeshes) {
+  let {
+    name,
+    instanceId
+  } = deconstructTileStringId(selectedTile);
+  return getTilePosition(name, instanceId, instancedMeshes);
+}
+
+export function hideRollOver(rollOverMesh) {
+  rollOverMesh.position.set(0, -2, 0);
 }
 
 // /**

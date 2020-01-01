@@ -1,6 +1,16 @@
 @import "variables.css";
 @import "font-face-rules.css";
 
+@keyframes pulsebg {
+  0% {
+    background: #fff;
+  }
+
+  100% {
+    background: #beb6ce;
+  }
+}
+
 html,
 body {
   height: 100%;
@@ -22,6 +32,10 @@ body {
   overflow: hidden;
 }
 
+button {
+  cursor: pointer;
+}
+
 .ui-elements {
   position: absolute;
   z-index: 1;
@@ -35,11 +49,35 @@ body {
   font-family: Helvetica, sans-serif;
 }
 
+.control {
+  padding: 10px;
+  border: 1px solid pink;
+}
+
 .control:not(:first-child) {
   margin-top: 10px;
 }
 
-.tool-state {
+.toggle-check-label {
+  display: block;
+  position: relative;
+  font-size: 12px;
+}
+
+.toggle-check-label span {
+  display: block;
+  padding: 4px;
+  border: 2px solid purple;
+  background: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.toggle-check-label input:checked+span {
+  animation: pulsebg infinite 0.5s alternate linear;
+}
+
+.horizontal-radios {
   display: flex;
 }
 
@@ -49,7 +87,8 @@ body {
   font-size: 12px;
 }
 
-.horizontal-radios .radio-label input {
+.horizontal-radios .radio-label input,
+.toggle-check-label input {
   position: absolute;
   left: 5px;
   bottom: 2px;
@@ -59,9 +98,10 @@ body {
 
 .horizontal-radios .radio-label span {
   display: block;
-  background: #ffffff;
+  background: #fff;
   padding: 2px;
   border: 1px solid purple;
+  cursor: pointer;
 }
 
 .horizontal-radios .radio-label:not(:first-child) span {
@@ -94,4 +134,50 @@ body {
 
 .creation-tile-type.enabled {
   display: block;
+}
+
+.d-pad {
+  display: grid;
+  width: 80px;
+  grid-template-columns: 1fr 1fr 1fr 60px;
+  grid-template-rows: 20px 20px;
+  grid-column-gap: 4px;
+  grid-row-gap: 4px;
+}
+
+.d-pad button {
+  background: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+  padding: 2px;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.rotate-hero-right {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+}
+
+.rotate-hero-left {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+
+.move-hero-forward {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+.move-hero-backward {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}
+
+.enable-wasd {
+  grid-column: 4 / 5;
+  grid-row: 1 / 3;
 }

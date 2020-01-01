@@ -33,9 +33,22 @@
         </label>
       </div>
     </div>
-    <div class="control">
+    <div class="control tool-mode">
+      <label>Edit Mode</label>
+      <div class="horizontal-radios">
+        <label class="radio-label">
+          <input type="radio" value="normal" checked name="editMode">
+          <span>Normal</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" value="create" name="editMode">
+          <span>Quick</span>
+        </label>
+      </div>
+    </div>
+    <div class="control creation-tile-type">
       <label>Creation Tile Type</label>
-      <div class="creation-tile-type list-radios">
+      <div class="list-radios">
         <label class="radio-label">
           <input type="radio" value="first" checked name="creationTileType">
           <span>Floor</span>
@@ -64,6 +77,20 @@
     <div class="control selected-tile-actions">
       <span class="selected-tile-label"></span>
       <button class="rotate-tile">Rotate</button>
+    </div>
+    <div class="control hero-action">
+      <label>Add hero to selected tile</label>
+      <button class="place-hero">Place Hero</button>
+      <div class="d-pad">
+        <button class="rotate-hero-left">&larr;</button>
+        <button class="rotate-hero-right">&rarr;</button>
+        <button class="move-hero-forward">&uarr;</button>
+        <button class="move-hero-backward">&darr;</button>
+        <label class="enable-wasd toggle-check-label">
+          <input type="checkbox" value="true" name="enableWASD">
+          <span>Enable WASD</span>
+        </label>
+      </div>
     </div>
     <div class="control">
       <button class="go-fullscreen">Go Fullscreen</button>

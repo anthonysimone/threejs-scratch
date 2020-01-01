@@ -88,13 +88,13 @@ const optimization = {
         test: /\.js$/,
         name: "commons",
         chunks: "all",
-        minChunks: 10, // this needs to be updated when more paths are added
+        minChunks: 12, // this needs to be updated when more paths are added
       },
       css: {
         test: /\.(css)$/,
         name: "commons",
         chunks: "all",
-        minChunks: 2,
+        minChunks: 4,
       },
     },
   },

@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import * as TWEEN from 'es6-tween';
 import * as Hammer from 'hammerjs';
 
-import OrbitControls from 'orbit-controls-es6';
+import {
+  GLTFLoader
+} from 'three/examples/jsm/loaders/GLTFLoader';
 import {
   MapControls
 } from 'three/examples/jsm/controls/OrbitControls';
@@ -12,14 +14,23 @@ import {
   tweenActiveTileToggle
 } from './board/tweens';
 import {
-  setMouse
+  setMouse,
+  degToRad,
 } from './board/helpers';
 import {
   toggleTileActiveState,
   rotateTile,
   deleteTile,
   addTile,
+  getTilePosition,
+  getSelectedTilePosition,
+  hideRollOver,
 } from './board/tileActions';
+import {
+  rotateModel,
+  moveForward,
+  moveBackward,
+} from './board/heroActions';
 import {
   loadTileTextures
 } from './board/loadTextures';
@@ -43,6 +54,7 @@ let geometries;
 let materials;
 let selectionHighlighter;
 let boardGroup;
+let characterGroup;
 const tilesNumber = 30;
 const checkerboardSize = tilesNumber % 4 === 0 ? tilesNumber : tilesNumber + 4 - (tilesNumber % 4);
 let instancedMeshes = {
@@ -68,16 +80,13 @@ let objects = [];
 let raycaster = new THREE.Raycaster();
 let mouse = new THREE.Vector2();
 let transform = new THREE.Object3D();
-let instanceMatrix = new THREE.Matrix4();
-let tweenMatrix = new THREE.Matrix4();
-let selectionMatrix = new THREE.Matrix4().makeTranslation(0, 0, 1);
-let unselectionMatrix = new THREE.Matrix4().makeTranslation(0, 0, -1);
-let rolloverOffsetVector = new THREE.Vector3(0.5, 0, 0.5);
-let initialTileOffsetVector = new THREE.Vector3(0.5, 0.126, 0.5);
+let rolloverOffsetVector = new THREE.Vector3(0.5, 0.125, 0.5);
+let initialTileOffsetVector = new THREE.Vector3(0.5, 0.125, 0.5);
 let matrix = new THREE.Matrix4();
 let selectedTile = null;
 let tapTypeState = 'activate';
 let creationTileType = 'first';
+let wasdEnabled = false;
 
 function getInstancedMeshKeyByIndex(index) {
   return Object.keys(instancedMeshes)[index];
@@ -108,6 +117,8 @@ function init() {
   geometries = createGeometries();
 
   createMeshes(false);
+
+  loadCharacterModel();
   createRenderer();
 
   renderer.setAnimationLoop((time) => {
@@ -127,7 +138,7 @@ function createCamera() {
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-  camera.position.set(0, 20, 0);
+  camera.position.set(0, 10, 0);
 }
 
 /**
@@ -136,11 +147,10 @@ function createCamera() {
 function createControls() {
   // Map Controls
   controls = new MapControls(camera, container);
-  //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
-  controls.enableDamping = false; // an animation loop is required when either damping or auto-rotation are enabled
-  controls.dampingFactor = 0.05;
+  controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+  controls.dampingFactor = 0.15;
   controls.screenSpacePanning = false;
-  controls.minDistance = 5;
+  controls.minDistance = 4;
   controls.maxDistance = 50;
   controls.maxPolarAngle = Math.PI / 2.2;
 }
@@ -165,6 +175,45 @@ function createLights() {
 }
 
 /**
+ * Load Models
+ */
+function loadCharacterModel() {
+  const loader = new GLTFLoader();
+
+  // Load 90s dad
+  characterGroup = new THREE.Group();
+  characterGroup.name = 'character_group';
+
+  // Hide 90s dad under board (TODO: figure out if he can be loaded without being added)
+  characterGroup.position.set(0.5, -5, 0.5);
+
+  boardGroup.add(characterGroup);
+
+  // Load 90s dad
+  const dadMatrix = new THREE.Matrix4();
+  dadMatrix.makeScale(0.125, 0.125, 0.125);
+  dadMatrix.setPosition(0, 0, 0);
+  loader.load(
+    '/models/90s_dad/scene.gltf',
+    gltf => onModelLoad(gltf, characterGroup, dadMatrix),
+    onModelProgress,
+    onModelError
+  );
+
+  // Load 90s dad's sword
+  const swordMatrix = new THREE.Matrix4();
+  swordMatrix.makeRotationFromEuler(new THREE.Euler(degToRad(70), degToRad(15), degToRad(-80), 'XYZ'));
+  swordMatrix.multiply(matrix.makeScale(0.4, 0.4, 0.4));
+  swordMatrix.setPosition(0.17, 0.71, 0.175);
+  loader.load(
+    '/models/medieval_sword/scene.gltf',
+    gltf => onModelLoad(gltf, characterGroup, swordMatrix),
+    onModelProgress,
+    onModelError
+  );
+}
+
+/**
  * Create grid
  */
 function createGrid() {
@@ -179,6 +228,7 @@ function createGrid() {
     transparent: true
   });
   rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
+  hideRollOver(rollOverMesh);
   gridGroup.add(rollOverMesh);
 
   // add grid
@@ -305,7 +355,7 @@ function createMeshes(withTiles) {
     for (let x = 0; x < tilesNumber; x++) {
       for (let z = 0; z < tilesNumber; z++) {
         // set transform based on position
-        transform.position.set(offset - x, 0.126, offset - z);
+        transform.position.set(offset - x, 0.125, offset - z);
         transform.updateMatrix();
 
         // Choose the instanced mesh to add to
@@ -359,10 +409,10 @@ function createRenderer() {
  */
 function update(time) {
   TWEEN.update();
+  controls.update();
 
   if (selectionHighlighter.visible) {
     selectionHighlighter.rotateY(0.02);
-
     selectionHighlighter.position.y = 0.85 + Math.sin(time / 200) * 0.1;
   }
 }
@@ -397,7 +447,6 @@ export function resetAllTiles() {
 function onWindowResize() {
   // set aspect ratio to match the new browser window aspect ratio
   camera.aspect = container.clientWidth / container.clientHeight;
-  console.log('container.client width height', container.clientWidth, container.clientHeight);
 
   // update the camera's frustum
   camera.updateProjectionMatrix();
@@ -445,7 +494,6 @@ function onMouseClick(event) {
     raycaster.setFromCamera(mouse, camera);
 
     let objectsIntersects = raycaster.intersectObjects(objects, true);
-    console.log('objectsIntersects', objectsIntersects);
 
     if (objectsIntersects.length > 0) {
       let intersect = objectsIntersects[0];
@@ -457,6 +505,7 @@ function onMouseClick(event) {
       transform.updateMatrix();
 
       addTileByType(creationTileType, transform);
+      hideRollOver(rollOverMesh);
     }
   }
 }
@@ -473,13 +522,25 @@ function selectTile(name, instanceId) {
   selectedTileActions.classList.add('has-selection');
 
   // get position of selected tile and assign marker to that position
-  instancedMeshes[name].mesh.getMatrixAt(instanceId, instanceMatrix);
-  let vec = new THREE.Vector3();
-  vec.setFromMatrixPosition(instanceMatrix);
+  let positionVec = getTilePosition(name, instanceId, instancedMeshes);
   const currentY = selectionHighlighter.position.y;
-  selectionHighlighter.position.set(vec.x, currentY, vec.z);
+  selectionHighlighter.position.set(positionVec.x, currentY, positionVec.z);
   selectionHighlighter.visible = true;
 }
+
+function addModelToSelectedTile() {
+  if (selectedTile) {
+    let v = getSelectedTilePosition(selectedTile, instancedMeshes);
+    v.y = 0.25;
+    characterGroup.position.set(v.x, v.y, v.z);
+  } else {
+    alert('You must select a tile!');
+  }
+}
+
+// function positionModel(model, position) {
+//   model.position.set(position);
+// }
 
 function addTileByType(type, position) {
   if (instancedMeshes.hasOwnProperty(type)) {
@@ -494,12 +555,19 @@ function addTileByType(type, position) {
  */
 function onDocumentMouseMove(event) {
   event.preventDefault();
-
   setMouse(mouse, event, container);
   raycaster.setFromCamera(mouse, camera);
 
-  let intersects = raycaster.intersectObjects(objects, true);
+  // Check if we hit a tile, if so we don't want to hide the mesh
+  let boardIntersects = raycaster.intersectObjects(boardGroup.children, true);
+  const hasHitTile = boardIntersects.length && boardIntersects[0].object.itemType === 'tile';
+  if (hasHitTile) {
+    hideRollOver(rollOverMesh);
+    return;
+  }
 
+  // If we haven't hit a tile, check where in the grid we are and position rollover
+  let intersects = raycaster.intersectObjects(objects, true);
   if (intersects.length > 0) {
     var intersect = intersects[0];
 
@@ -508,8 +576,6 @@ function onDocumentMouseMove(event) {
     rollOverMesh.position.y = 0;
     rollOverMesh.position.add(rolloverOffsetVector);
   }
-
-  // render();
 }
 
 // Set everything up
@@ -533,8 +599,26 @@ resetButton.addEventListener('click', e => {
 const uiElements = document.getElementsByClassName('ui-elements')[0];
 uiElements.addEventListener('click', e => {
   if (e.target.classList.contains('rotate-tile')) {
-    let selectedTileParts = selectedTile.split('-');
-    rotateTile(selectedTileParts[0], selectedTileParts[1], instancedMeshes[selectedTileParts[0]].mesh);
+    let {
+      name,
+      instanceId
+    } = deconstructTileStringId(selectedTile);
+    rotateTile(name, instanceId, instancedMeshes[name].mesh);
+  }
+  if (e.target.classList.contains('place-hero')) {
+    addModelToSelectedTile();
+  }
+  if (e.target.classList.contains('rotate-hero-left')) {
+    rotateModel(characterGroup, false);
+  }
+  if (e.target.classList.contains('rotate-hero-right')) {
+    rotateModel(characterGroup, true);
+  }
+  if (e.target.classList.contains('move-hero-forward')) {
+    moveForward(characterGroup);
+  }
+  if (e.target.classList.contains('move-hero-backward')) {
+    moveBackward(characterGroup);
   }
 });
 
@@ -569,6 +653,59 @@ for (let i = 0; i < tapTypeRadios.length; i++) {
   });
 }
 
+// Add wasd events
+const wasdToggle = document.getElementsByClassName('enable-wasd')[0].getElementsByTagName('input')[0];
+wasdToggle.addEventListener('change', e => {
+  wasdEnabled = e.target.checked;
+});
+document.addEventListener('keypress', e => {
+  console.log('keypress', e);
+  // do wasd logic if enabled
+  if (wasdEnabled) {
+    switch (e.key) {
+      case 'w':
+        moveForward(characterGroup);
+        break;
+      case 's':
+        moveBackward(characterGroup);
+        break;
+      case 'a':
+        rotateModel(characterGroup, false);
+        break;
+      case 'd':
+        rotateModel(characterGroup, true);
+        break;
+
+    }
+  }
+});
+
+/**
+ * Use to recreate an instanced mesh with a new instanceMatrix count.
+ */
+function increaseInstanceCount(mesh, newCount) {
+  // TODO: implement
+}
+
+// Reusable onLoad function
+const onModelLoad = (gltf, modelGroup, modelMatrix) => {
+  const model = gltf.scene.children[0];
+  model.applyMatrix(modelMatrix);
+
+  // let box = new THREE.BoxHelper(model, 0xffff00);
+
+  modelGroup.add(model);
+  // modelGroup.add(box);
+};
+
+// the loader will report the loading progress to this function
+const onModelProgress = () => {};
+
+// the loader will send any error messages to this function, and we'll log
+// them to to console
+const onModelError = errorMessage => {
+  console.log(errorMessage);
+};
 
 
 

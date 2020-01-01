@@ -13,7 +13,7 @@
     "ci": "yarn test && yarn coverage && yarn build",
     "coverage": "codecov",
     "deploy": "gh-pages -d build",
-    "lint": "yarn lint:css && yarn lint:js",
+    "lint": "yarn lint:js",
     "lint:css": "stylelint --config .stylelintrc.json --formatter verbose './src/**/*.css'",
     "lint:js": "eslint 'src/**/*.{js,ts}' --fix",
     "ncu": "ncu",
