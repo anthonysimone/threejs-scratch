@@ -194,7 +194,7 @@ function loadCharacterModel() {
   dadMatrix.makeScale(0.125, 0.125, 0.125);
   dadMatrix.setPosition(0, 0, 0);
   loader.load(
-    '/models/90s_dad/scene.gltf',
+    'models/90s_dad/scene.gltf',
     gltf => onModelLoad(gltf, characterGroup, dadMatrix),
     onModelProgress,
     onModelError
@@ -206,7 +206,7 @@ function loadCharacterModel() {
   swordMatrix.multiply(matrix.makeScale(0.4, 0.4, 0.4));
   swordMatrix.setPosition(0.17, 0.71, 0.175);
   loader.load(
-    '/models/medieval_sword/scene.gltf',
+    'models/medieval_sword/scene.gltf',
     gltf => onModelLoad(gltf, characterGroup, swordMatrix),
     onModelProgress,
     onModelError
