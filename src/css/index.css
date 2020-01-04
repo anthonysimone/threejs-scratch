@@ -47,6 +47,33 @@ button {
   padding: 5px;
   font-size: 14px;
   font-family: Helvetica, sans-serif;
+  transform: translateX(180px);
+  transition: transform 300ms ease;
+}
+
+.ui-elements.show-controls {
+  transform: translateX(0);
+}
+
+.controls-toggle {
+  color: transparent;
+  font-size: 0;
+  height: 20px;
+  width: 20px;
+  padding: 0;
+  text-align: center;
+  border-color: purple;
+}
+
+.controls-toggle:before {
+  content: '\2190';
+  color: purple;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.ui-elements.show-controls .controls-toggle:before {
+  content: '\2192';
 }
 
 .control {

@@ -633,6 +633,11 @@ uiElements.addEventListener('click', e => {
   }
 });
 
+// Toggle ui controls
+const controlsToggle = document.getElementsByClassName('controls-toggle')[0];
+controlsToggle.addEventListener('click', () => {
+  uiElements.classList.toggle('show-controls');
+});
 
 // Add event to update tile selection state
 const creationTypeControl = document.getElementsByClassName('creation-tile-type')[0];
