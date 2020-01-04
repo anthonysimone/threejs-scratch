@@ -29,6 +29,8 @@ export function deconstructTileStringId(tileStringId) {
  * Disable PAN
  */
 export function setPan(controls, enable) {
-  const value = enable ? THREE.MOUSE.PAN : null;
-  controls.mouseButtons.LEFT = value;
+  const mouseValue = enable ? THREE.MOUSE.PAN : null;
+  const touchValue = enable ? THREE.TOUCH.PAN : null;
+  controls.mouseButtons.LEFT = mouseValue;
+  controls.touches.ONE = touchValue;
 }
