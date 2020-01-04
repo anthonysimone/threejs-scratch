@@ -16,6 +16,7 @@ import {
 import {
   setMouse,
   degToRad,
+  setPan,
 } from './board/helpers';
 import {
   toggleTileActiveState,
@@ -86,6 +87,7 @@ let matrix = new THREE.Matrix4();
 let selectedTile = null;
 let tapTypeState = 'activate';
 let creationTileType = 'first';
+let editorMode = 'normal';
 let wasdEnabled = false;
 
 function getInstancedMeshKeyByIndex(index) {
@@ -510,6 +512,13 @@ function onMouseClick(event) {
   }
 }
 
+/**
+ * Hammer pan
+ */
+function onHammerPan(hammerEvent) {
+  onMouseClick(hammerEvent.srcEvent);
+}
+
 const selectedTileLabel = document.getElementsByClassName('selected-tile-label')[0];
 const selectedTileActions = document.getElementsByClassName('selected-tile-actions')[0];
 
@@ -584,7 +593,9 @@ init();
 // Add hammertime
 let hammerContainer = new Hammer.Manager(container);
 let Tap = new Hammer.Tap();
+let Pan = new Hammer.Pan();
 hammerContainer.add(Tap);
+hammerContainer.add(Pan);
 hammerContainer.on('tap', (e) => {
   onMouseClick(e.srcEvent);
 });
@@ -649,6 +660,23 @@ for (let i = 0; i < tapTypeRadios.length; i++) {
       creationTypeControl.classList.add('enabled');
     } else {
       creationTypeControl.classList.remove('enabled');
+    }
+  });
+}
+
+// Add event to change editor mode
+const editorModeRadios = document.getElementsByClassName('tool-mode')[0].getElementsByTagName('input');
+for (let i = 0; i < editorModeRadios.length; i++) {
+  editorModeRadios[i].addEventListener('change', e => {
+    editorMode = e.target.value;
+
+    // Enable or disable pan based on editor mode
+    if (editorMode === 'quick') {
+      setPan(controls, false);
+      hammerContainer.on('pan', onHammerPan);
+    } else {
+      setPan(controls, true);
+      hammerContainer.off('pan', onHammerPan);
     }
   });
 }

@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 /**
  * Set mouse
  */
@@ -21,4 +23,12 @@ export function deconstructTileStringId(tileStringId) {
     name: parts[0],
     instanceId: parts[1]
   }
+}
+
+/**
+ * Disable PAN
+ */
+export function setPan(controls, enable) {
+  const value = enable ? THREE.MOUSE.PAN : null;
+  controls.mouseButtons.LEFT = value;
 }
