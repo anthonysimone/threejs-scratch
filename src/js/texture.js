@@ -45,7 +45,7 @@ function createCamera() {
 
   camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-  camera.position.set(-4, 4, 10);
+  camera.position.set(-20, 20, 20);
 }
 
 /**
@@ -77,20 +77,28 @@ function createLights() {
  * Create cube mesh
  */
 function createMeshes() {
-  const geometry = new THREE.BoxBufferGeometry(2, 2, 2);
+  // geometry
+  let geometry = new THREE.Geometry();
 
-  const textureLoader = new THREE.TextureLoader();
+  for (let count = 0; count < 10; count++) {
+    let geo = new THREE.BoxGeometry(5, 5, 5);
+    geo.translate(THREE.Math.randFloat(-5, 5), THREE.Math.randFloat(-5, 5), THREE.Math.randFloat(-5, 5));
+    let color = new THREE.Color().setHSL(Math.random(), 0.5, 0.5);
+    for (let i = 0; i < geo.faces.length; i++) {
+      let face = geo.faces[i];
+      face.vertexColors.push(color, color, color); // all the same in this case
+      //face.color.set( color ); // this works, too; use one or the other
+    }
+    geometry.merge(geo);
+  }
 
-  const texture = textureLoader.load(bwUvMap);
-
-  texture.encoding = THREE.sRGBEncoding;
-  texture.anisotropy = 16;
-
-  const material = new THREE.MeshStandardMaterial({
-    map: texture
+  // material
+  let material = new THREE.MeshPhongMaterial({
+    color: 0xffffff,
+    vertexColors: THREE.VertexColors // or THREE.FaceColors, if defined
   });
 
-  mesh = new THREE.Mesh(geometry, material);
+  let mesh = new THREE.Mesh(geometry, material);
 
   scene.add(mesh);
 }

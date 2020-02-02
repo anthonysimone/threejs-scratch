@@ -81,31 +81,31 @@ const rules = [{
   },
 ];
 
-const optimization = {
-  splitChunks: {
-    cacheGroups: {
-      js: {
-        test: /\.js$/,
-        name: "commons",
-        chunks: "all",
-        minChunks: 12, // this needs to be updated when more paths are added
-      },
-      css: {
-        test: /\.(css)$/,
-        name: "commons",
-        chunks: "all",
-        minChunks: 4,
-      },
-    },
-  },
-};
+// const optimization = {
+//   splitChunks: {
+//     cacheGroups: {
+//       js: {
+//         test: /\.js$/,
+//         name: "commons",
+//         chunks: "all",
+//         minChunks: 4, // this needs to be updated when more paths are added
+//       },
+//       css: {
+//         test: /\.(css)$/,
+//         name: "commons",
+//         chunks: "all",
+//         minChunks: 4,
+//       },
+//     },
+//   },
+// };
 
 const devServer = {
   compress: true,
   contentBase: path.join(__dirname, "build"),
   host: "localhost",
   inline: true,
-  port: 8080,
+  port: 8085,
   stats: {
     chunks: false,
     colors: true,
@@ -208,6 +208,24 @@ module.exports = (env, argv) => {
         PUBLIC_URL,
       },
     }),
+    new HtmlWebpackPlugin({
+      chunks: ["gltfTestPage"],
+      filename: "gltfTest.html",
+      hash: true,
+      template: path.join(__dirname, "src", "templates", "gltfTest.html"),
+      templateParameters: {
+        PUBLIC_URL,
+      },
+    }),
+    new HtmlWebpackPlugin({
+      chunks: ["outlinePage"],
+      filename: "outline.html",
+      hash: true,
+      template: path.join(__dirname, "src", "templates", "outline.html"),
+      templateParameters: {
+        PUBLIC_URL,
+      },
+    }),
     new MiniCssExtractPlugin({
       filename: "[hash].css",
       chunkFilename: "[id].bundle.css",
@@ -249,11 +267,13 @@ module.exports = (env, argv) => {
       dicePage: "./src/js/dice.js",
       gridPage: "./src/js/grid.js",
       boardPage: "./src/js/board.js",
+      gltfTestPage: "./src/js/gltfTest.js",
+      outlinePage: "./src/js/outline.js",
     },
     module: {
       rules,
     },
-    optimization,
+    // optimization,
     output: {
       filename: "[name].[hash].js",
       path: path.join(__dirname, "build"),

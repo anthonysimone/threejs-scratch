@@ -14,6 +14,7 @@ import {
   tweenActiveTileToggle
 } from './board/tweens';
 import {
+  deconstructTileStringId,
   setMouse,
   degToRad,
   setPan,
@@ -343,6 +344,7 @@ function createMeshes(withTiles) {
       mesh: new THREE.InstancedMesh(geometries.tiles[i], materials.tiles[i], count),
       count: 0
     };
+    console.log(instancedMeshes[key].mesh);
     instancedMeshes[key].mesh.count = 0;
     instancedMeshes[key].mesh.frustumCulled = false;
     instancedMeshes[key].mesh.name = key;
@@ -718,6 +720,7 @@ document.addEventListener('keypress', e => {
  */
 function increaseInstanceCount(mesh, newCount) {
   // TODO: implement
+  // mesh
 }
 
 // Reusable onLoad function
