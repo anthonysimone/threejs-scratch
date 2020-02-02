@@ -1,0 +1,246 @@
+:root {
+  /* COLORS */
+  --colors-background-primary: #374047;
+  --colors-background-secondary: #5f6e78;
+  --colors-header: #5f6e78;
+
+  /* TYPOGRAPHY */
+  --typography-font-family-primary: "InknutAntiqua", sans-serif;
+  --typography-font-family-secondary: "Raleway";
+}
+
+/* Define font-face rules
+ * If you have multiple font formats, put most modern formats first.
+ * A single font-family can have multiple fonts (e.g. for bold, italic).
+ */
+
+@font-face {
+  font-family: InknutAntiqua;
+  font-style: normal;
+  font-weight: normal;
+  /* stylelint-disable-next-line declaration-colon-newline-after */
+  src: url(./fonts/InknutAntiqua-Regular.ttf)
+    format("truetype");
+}
+
+@font-face {
+  font-family: InknutAntiqua;
+  font-style: normal;
+  font-weight: bold;
+  /* stylelint-disable-next-line declaration-colon-newline-after */
+  src: url(./fonts/InknutAntiqua-ExtraBold.ttf)
+    format("truetype");
+}
+
+/* other cool fonts Syncopate, Quicksand, Aclonica */
+
+@keyframes pulsebg {
+  0% {
+    background: #fff;
+  }
+
+  100% {
+    background: #beb6ce;
+  }
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: black;
+}
+
+body {
+  font-family: var(--typography-font-family-primary);
+  margin: 0;
+  overflow: hidden;
+}
+
+#scene-container {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+button {
+  cursor: pointer;
+}
+
+.ui-elements {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  width: 200px;
+  border: 2px solid #232323;
+  background: white;
+  padding: 5px;
+  font-size: 14px;
+  font-family: Helvetica, sans-serif;
+  transform: translateX(180px);
+  transition: transform 300ms ease;
+}
+
+.ui-elements.show-controls {
+  transform: translateX(0);
+}
+
+.controls-toggle {
+  color: transparent;
+  font-size: 0;
+  height: 20px;
+  width: 20px;
+  padding: 0;
+  text-align: center;
+  border-color: purple;
+}
+
+.controls-toggle:before {
+  content: '\2190';
+  color: purple;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.ui-elements.show-controls .controls-toggle:before {
+  content: '\2192';
+}
+
+.control {
+  padding: 10px;
+  border: 1px solid pink;
+}
+
+.control:not(:first-child) {
+  margin-top: 10px;
+}
+
+.toggle-check-label {
+  display: block;
+  position: relative;
+  font-size: 12px;
+}
+
+.toggle-check-label span {
+  display: block;
+  padding: 4px;
+  border: 2px solid purple;
+  background: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.toggle-check-label input:checked+span {
+  animation: pulsebg infinite 0.5s alternate linear;
+}
+
+.horizontal-radios {
+  display: flex;
+}
+
+.horizontal-radios .radio-label {
+  display: block;
+  position: relative;
+  font-size: 12px;
+}
+
+.horizontal-radios .radio-label input,
+.toggle-check-label input {
+  position: absolute;
+  left: 5px;
+  bottom: 2px;
+  font-size: 0;
+  z-index: -1;
+}
+
+.horizontal-radios .radio-label span {
+  display: block;
+  background: #fff;
+  padding: 2px;
+  border: 1px solid purple;
+  cursor: pointer;
+}
+
+.horizontal-radios .radio-label:not(:first-child) span {
+  border-left: none;
+}
+
+.horizontal-radios .radio-label input:checked+span {
+  background-color: #beb6ce;
+}
+
+.list-radios {
+  font-size: 12px;
+}
+
+.list-radios label {
+  display: block;
+}
+
+.selected-tile-actions {
+  display: none;
+}
+
+.selected-tile-actions.has-selection {
+  display: block;
+}
+
+.creation-tile-type {
+  display: none;
+}
+
+.creation-tile-type.enabled {
+  display: block;
+}
+
+.d-pad {
+  display: grid;
+  width: 80px;
+  grid-template-columns: 1fr 1fr 1fr 60px;
+  grid-template-rows: 20px 20px;
+  grid-column-gap: 4px;
+  grid-row-gap: 4px;
+}
+
+.d-pad button {
+  background: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+  padding: 2px;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.rotate-hero-right {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+}
+
+.rotate-hero-left {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+
+.move-hero-forward {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+.move-hero-backward {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}
+
+.enable-wasd {
+  grid-column: 4 / 5;
+  grid-row: 1 / 3;
+}
+
+
+/*# sourceMappingURL=eeb58d410108c837d0e4.css.map*/
