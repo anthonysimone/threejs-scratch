@@ -1,5 +1,7 @@
 # three.js-es6-webpack-starter
 
+Test commit
+
 [![Build Status](https://travis-ci.org/jackdbd/threejs-es6-webpack-starter.svg?branch=master)](https://travis-ci.org/jackdbd/threejs-es6-webpack-starter) [![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovateapp.com/) [![Code style prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 Three.js ES6 starter project with a sane webpack configuration.
