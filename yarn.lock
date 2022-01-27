@@ -12721,10 +12721,10 @@ three@0.97.0:
   resolved "https://registry.yarnpkg.com/three/-/three-0.97.0.tgz#76141e1b0ace14246fe9198a458fefddc98a4e30"
   integrity sha512-ctZF79O1R2aMIDnz9cV5GUIONyFnYvfQKg4+EAwEVaEr1mgy99rglstH6hhRdIThu3SOa4Ns5da/Ee5fTbWc9A==
 
-three@^0.112.0:
-  version "0.112.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.112.0.tgz#3b392ca32df77a3570c226c1fe184d9f5f86ac66"
-  integrity sha512-dX2fm4kmpaEq3A8sMGOBZzI5X132Lzoh+Aw/uFF3iGXnjM0jzxo5vugDbydTQbWU2I31XC1Nn7kIPdyhxx1uqg==
+three@^0.137.0:
+  version "0.137.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.137.0.tgz#0ebd6ba66637a332c31f234bcdd35aeec071a6e3"
+  integrity sha512-rzSDhia6cU35UCy6y+zEEws6vSgytfHqFMSaBvUcySgzwvDO6vETyswtSNi/+aVqJw8WLMwyT1mlQQ1T/dxxOA==
 
 throat@^4.0.0:
   version "4.1.0"
